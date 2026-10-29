@@ -183,24 +183,3 @@ lmm_results = lmm_results %>%
   arrange(Effect, FDR_Adjusted_P)
 
 print(as.data.frame(lmm_results))
-
-# ==========================================
-# 11. SAVE RESULTS TO CSV FILE
-# ==========================================
-output_dir = "/Users/janorzechowski/Library/Mobile Documents/com~apple~CloudDocs/Projekty - Magisterka/Praca Dyplomowa/Wstepne_Wyniki/"
-
-format_p = function(x) {
-  ifelse(x < 0.0001, "<0.0001", sprintf("%.4f", x))
-}
-
-lmm_results_export = lmm_results %>%
-  mutate(
-    F_value = round(F_value, 2),
-    P_value = format_p(P_value),
-    FDR_Adjusted_P = format_p(FDR_Adjusted_P)
-  )
-
-# to save the file
-# write.csv(lmm_results_export, 
-#           file = paste0(output_dir, "Fractions_LMM_Full_Stats_ENG.csv"), 
-#           row.names = FALSE)

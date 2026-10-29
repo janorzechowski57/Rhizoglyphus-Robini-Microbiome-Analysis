@@ -116,11 +116,6 @@ p_pcoa_combined = ggplot(pcoa_data_merged, aes(x = PCoA1, y = PCoA2, color = Gro
 
 print(p_pcoa_combined)
 
-# Save plot to file
-ggsave("/Users/janorzechowski/Library/Mobile Documents/com~apple~CloudDocs/Projekty - Magisterka/Praca Dyplomowa/Wstepne_Wyniki/PCoA_Aitchison_HighRes.png", 
-       plot = p_pcoa_combined, 
-       width = 11, height = 4.5, dpi = 300)
-
 # ==========================================
 # 9. GLOBAL PERMANOVA TEST (AITCHISON)
 # ==========================================
