@@ -9,11 +9,11 @@ library(lmerTest)
 # ==========================================
 # 2. LOAD FILES
 # ==========================================
-meta = read.csv("/Users/janorzechowski/Downloads/Magisterka_Analiza/Indeks_Mite.csv", sep = ";", stringsAsFactors = FALSE)
+meta = read.csv("/Users/janorzechowski/Documents/GitHub/Rhizoglyphus-Robini-Microbiome-Analysis/data/Indeks_Mite.csv", sep = ";", stringsAsFactors = FALSE)
 if(ncol(meta) == 1) {
-  meta = read.csv("/Users/janorzechowski/Downloads/Magisterka_Analiza/Indeks_Mite.csv", sep = ",", stringsAsFactors = FALSE)
+  meta = read.csv("/Users/janorzechowski/Documents/GitHub/Rhizoglyphus-Robini-Microbiome-Analysis/data/Indeks_Mite.csv", sep = ",", stringsAsFactors = FALSE)
 }
-kraken = read.csv("/Users/janorzechowski/Downloads/Magisterka_Analiza/kraken_family_matrix.csv", stringsAsFactors = FALSE)
+kraken = read.csv("/Users/janorzechowski/Documents/GitHub/Rhizoglyphus-Robini-Microbiome-Analysis/data/kraken_family_matrix.csv", stringsAsFactors = FALSE)
 
 # ==========================================
 # 3. CLEAN METADATA AND CREATE GROUPS
@@ -71,69 +71,97 @@ plot_data = data.frame(
 )
 
 # ==========================================
-# 6. GENERATE 2 BOXPLOT + JITTER PLOTS
+# 6. GENERATE SUMMARY PLOTS (NATURE ECOLOGY STYLE)
 # ==========================================
-# Define two colors for sex
-colors_sex = c("Female" = "#CC79A7", "Male" = "#0072B2")
+# Calculate means and standard deviations including Sex
+plot_summary = plot_data %>%
+  group_by(Type, Gen, Sex) %>%
+  summarise(
+    Mean_Shannon = mean(Shannon),
+    SD_Shannon = sd(Shannon),
+    Mean_Simpson = mean(Simpson),
+    SD_Simpson = sd(Simpson),
+    .groups = 'drop'
+  )
+
+colors_type = c("Fighter" = "#24A385", "Scrambler" = "#DE7422")
+shapes_sex = c("Female" = 21, "Male" = 22) 
+
+# Position dodge to separate points slightly
+pd = position_dodge(0.7)
 
 # -- 1. SHANNON --
-p_shannon = ggplot(plot_data, aes(x = Type, y = Shannon, fill = Sex, shape = Sex)) +
-  facet_wrap(~ Gen) + 
-  geom_boxplot(alpha = 0.6, outlier.shape = NA, width = 0.45, position = position_dodge(width = 0.65)) +
-  geom_jitter(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.65), size = 2.5, color = "black", alpha = 0.7) +
+p_shannon = ggplot() +
+  # Raw data (small points) - FIX: Added group = interaction(Type, Sex) to strictly align with summary points
+  geom_jitter(data = plot_data, aes(x = Gen, y = Shannon, color = Type, shape = Sex, group = interaction(Type, Sex)), 
+              position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.7), 
+              size = 1.5, alpha = 0.4, show.legend = FALSE) +
+  # Error bars
+  geom_errorbar(data = plot_summary, aes(x = Gen, ymin = Mean_Shannon - SD_Shannon, 
+                                         ymax = Mean_Shannon + SD_Shannon, color = Type, group = interaction(Type, Sex)), 
+                position = pd, width = 0.15, size = 1, show.legend = TRUE) +
+  # Mean points
+  geom_point(data = plot_summary, aes(x = Gen, y = Mean_Shannon, color = Type, shape = Sex, group = interaction(Type, Sex)), 
+             position = pd, size = 4, stroke = 1.5, fill = "white", show.legend = TRUE) +
   theme_bw(base_size = 14) +
-  scale_fill_manual(values = colors_sex) +
-  scale_shape_manual(values = c("Female" = 21, "Male" = 22)) +
+  scale_color_manual(values = colors_type, 
+                     labels = c("Fighter" = "Fighter", "Scrambler" = "Scrambler"),
+                     guide = guide_legend(override.aes = list(shape = 21, fill = "white", size = 4, stroke = 1.5, linetype = 1))) +
+  scale_shape_manual(values = shapes_sex) +
   labs(
     title = "Shannon Diversity by Phenotype Group\nAcross Generations", 
-    x = "Morph Treatment", 
-    y = "Shannon Diversity Index",
-    fill = "Sex",
+    y = NULL, 
+    x = "Generation",
+    color = "Morph",
     shape = "Sex"
   ) +
   theme(
     plot.title = element_text(hjust = 0.5, face = "bold", size = 15), 
-    legend.position = "bottom",
-    legend.title = element_text(size = 12, face = "bold"),
-    legend.text = element_text(size = 11),
-    legend.margin = margin(t = 0), 
-    strip.background = element_rect(fill = "grey90", color = "black"),
-    strip.text = element_text(face = "bold", size = 13),
-    axis.title.x = element_text(face = "bold", size = 14, margin = margin(t = 5)),
-    axis.title.y = element_text(face = "bold", size = 14, margin = margin(r = 5)),
-    axis.text.x = element_text(size = 9.5, face = "bold", color = "black"), 
-    axis.text.y = element_text(size = 11),
-    plot.margin = margin(t = 5, r = 5, b = 5, l = 5)
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "right",
+    legend.title = element_text(face = "bold", size = 14),
+    legend.text = element_text(size = 12),
+    legend.key = element_rect(fill = "transparent", color = NA),
+    axis.title = element_text(face = "bold"),
+    axis.text = element_text(color = "black")
   )
 
 # -- 2. SIMPSON --
-p_simpson = ggplot(plot_data, aes(x = Type, y = Simpson, fill = Sex, shape = Sex)) +
-  facet_wrap(~ Gen) + 
-  geom_boxplot(alpha = 0.6, outlier.shape = NA, width = 0.45, position = position_dodge(width = 0.65)) +
-  geom_jitter(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.65), size = 2.5, color = "black", alpha = 0.7) +
+p_simpson = ggplot() +
+  # Raw data (small points) - FIX: Added group = interaction(Type, Sex)
+  geom_jitter(data = plot_data, aes(x = Gen, y = Simpson, color = Type, shape = Sex, group = interaction(Type, Sex)), 
+              position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.7), 
+              size = 1.5, alpha = 0.4, show.legend = FALSE) +
+  # Error bars
+  geom_errorbar(data = plot_summary, aes(x = Gen, ymin = Mean_Simpson - SD_Simpson, 
+                                         ymax = Mean_Simpson + SD_Simpson, color = Type, group = interaction(Type, Sex)), 
+                position = pd, width = 0.15, size = 1, show.legend = TRUE) +
+  # Mean points
+  geom_point(data = plot_summary, aes(x = Gen, y = Mean_Simpson, color = Type, shape = Sex, group = interaction(Type, Sex)), 
+             position = pd, size = 4, stroke = 1.5, fill = "white", show.legend = TRUE) +
   theme_bw(base_size = 14) +
-  scale_fill_manual(values = colors_sex) +
-  scale_shape_manual(values = c("Female" = 21, "Male" = 22)) +
+  scale_color_manual(values = colors_type, 
+                     labels = c("Fighter" = "Fighter", "Scrambler" = "Scrambler"),
+                     guide = guide_legend(override.aes = list(shape = 21, fill = "white", size = 4, stroke = 1.5, linetype = 1))) +
+  scale_shape_manual(values = shapes_sex) +
   labs(
     title = "Simpson Diversity by Phenotype Group\nAcross Generations", 
-    x = "Morph Treatment", 
-    y = "Simpson Diversity Index",
-    fill = "Sex",
+    y = NULL,
+    x = "Generation",
+    color = "Morph",
     shape = "Sex"
   ) +
   theme(
     plot.title = element_text(hjust = 0.5, face = "bold", size = 15), 
-    legend.position = "bottom",
-    legend.title = element_text(size = 12, face = "bold"),
-    legend.text = element_text(size = 11),
-    legend.margin = margin(t = 0), 
-    strip.background = element_rect(fill = "grey90", color = "black"),
-    strip.text = element_text(face = "bold", size = 13),
-    axis.title.x = element_text(face = "bold", size = 14, margin = margin(t = 5)),
-    axis.title.y = element_text(face = "bold", size = 14, margin = margin(r = 5)),
-    axis.text.x = element_text(size = 9.5, face = "bold", color = "black"), 
-    axis.text.y = element_text(size = 11),
-    plot.margin = margin(t = 5, r = 5, b = 5, l = 5)
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "right",
+    legend.title = element_text(face = "bold", size = 14),
+    legend.text = element_text(size = 12),
+    legend.key = element_rect(fill = "transparent", color = NA),
+    axis.title = element_text(face = "bold"),
+    axis.text = element_text(color = "black")
   )
 
 print(p_shannon)

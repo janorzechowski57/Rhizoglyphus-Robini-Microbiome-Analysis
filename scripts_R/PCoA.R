@@ -8,11 +8,11 @@ library(vegan)
 # ==========================================
 # 2. LOAD FILES
 # ==========================================
-meta = read.csv("/Users/janorzechowski/Downloads/Magisterka_Analiza/Indeks_Mite.csv", sep = ";", stringsAsFactors = FALSE)
+meta = read.csv("/Users/janorzechowski/Documents/GitHub/Rhizoglyphus-Robini-Microbiome-Analysis/data/Indeks_Mite.csv", sep = ";", stringsAsFactors = FALSE)
 if(ncol(meta) == 1) {
-  meta = read.csv("/Users/janorzechowski/Downloads/Magisterka_Analiza/Indeks_Mite.csv", sep = ",", stringsAsFactors = FALSE)
+  meta = read.csv("/Users/janorzechowski/Documents/GitHub/Rhizoglyphus-Robini-Microbiome-Analysis/data/Indeks_Mite.csv", sep = ",", stringsAsFactors = FALSE)
 }
-kraken = read.csv("/Users/janorzechowski/Downloads/Magisterka_Analiza/kraken_family_matrix.csv", stringsAsFactors = FALSE)
+kraken = read.csv("/Users/janorzechowski/Documents/GitHub/Rhizoglyphus-Robini-Microbiome-Analysis/data/kraken_family_matrix.csv", stringsAsFactors = FALSE)
 
 # ==========================================
 # 3. CLEAN METADATA AND CREATE GROUPS
